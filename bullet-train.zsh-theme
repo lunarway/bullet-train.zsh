@@ -563,25 +563,28 @@ prompt_rust() {
 
 # Kubernetes Context
 prompt_kctx() {
-  if [[ ! -n $BULLETTRAIN_KCTX_KCONFIG ]]; then
+  kubeconfig=${BULLETTRAIN_KCTX_KCONFIG:-$KUBECONFIG}
+  if [[ ! -n $kubeconfig ]]; then
     return
   fi
   if command -v kubectl > /dev/null 2>&1; then
-    if [[ -f $BULLETTRAIN_KCTX_KCONFIG ]]; then
-      prompt_segment $BULLETTRAIN_KCTX_BG $BULLETTRAIN_KCTX_FG $BULLETTRAIN_KCTX_PREFIX" $(cat $BULLETTRAIN_KCTX_KCONFIG|grep current-context| awk '{print $2}')"
+    if [[ -f $kubeconfig ]]; then
+      prompt_segment $BULLETTRAIN_KCTX_BG $BULLETTRAIN_KCTX_FG $BULLETTRAIN_KCTX_PREFIX" $(cat $kubeconfig|grep current-context| awk '{print $2}')"
     fi  
   fi
 }
 
 # Kubernetes Namespace
 prompt_kns() {
-  if [[ ! -n $BULLETTRAIN_KNS_KCONFIG ]]; then
+  kubeconfig=${BULLETTRAIN_KCTX_KCONFIG:-$KUBECONFIG}
+  kctx=$(cat $kubeconfig|grep current-context| awk '{print $2}')
+  namespace=$(kubectl config view -o jsonpath="{.contexts[?(@.name==\"$kctx\")].context.namespace}")
+  if [[ ! -n $kubeconfig ]] || [[ ! -n $namespace ]]; then
     return
   fi
   if command -v kubectl > /dev/null 2>&1; then
-    if [[ -f $BULLETTRAIN_KNS_KCONFIG ]]; then
-      kctx=$(cat $BULLETTRAIN_KNS_KCONFIG|grep current-context| awk '{print $2}')
-      prompt_segment $BULLETTRAIN_KNS_BG $BULLETTRAIN_KNS_FG $BULLETTRAIN_KNS_PREFIX" $(kubectl config view -o jsonpath="{.contexts[?(@.name==\"$kctx\")].context.namespace}")"
+    if [[ -f $kubeconfig ]]; then
+      prompt_segment $BULLETTRAIN_KNS_BG $BULLETTRAIN_KNS_FG $BULLETTRAIN_KNS_PREFIX" $namespace"
     fi  
   fi
 }
